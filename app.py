@@ -12,39 +12,47 @@ def annotate():
     obj = data['objectsFound'][0]
     label = obj['type']
     box = obj['box']
-    
-    color = '#FF0000' if label.lower() == 'person' else '#00FF00'
-    
+
     img_response = requests.get(image_url)
     img = Image.open(io.BytesIO(img_response.content))
-    
+
     w, h = img.size
     x1 = int(box['left'] * w)
     y1 = int(box['top'] * h)
     x2 = int(box['right'] * w)
     y2 = int(box['bottom'] * h)
-    
+
     draw = ImageDraw.Draw(img)
-    lw = 5
-    cl = min(int((x2 - x1) * 0.25), int((y2 - y1) * 0.25), 30)
-    
-    # Top left
-    draw.line([(x1, y1), (x1 + cl, y1)], fill=color, width=lw)
-    draw.line([(x1, y1), (x1, y1 + cl)], fill=color, width=lw)
-    # Top right
-    draw.line([(x2, y1), (x2 - cl, y1)], fill=color, width=lw)
-    draw.line([(x2, y1), (x2, y1 + cl)], fill=color, width=lw)
-    # Bottom left
-    draw.line([(x1, y2), (x1 + cl, y2)], fill=color, width=lw)
-    draw.line([(x1, y2), (x1, y2 - cl)], fill=color, width=lw)
-    # Bottom right
-    draw.line([(x2, y2), (x2 - cl, y2)], fill=color, width=lw)
-    draw.line([(x2, y2), (x2, y2 - cl)], fill=color, width=lw)
-    
+
+    if label.lower() == 'person':
+        # Full box with padding and thin line
+        pad = 8
+        draw.rectangle(
+            [x1 - pad, y1 - pad, x2 + pad, y2 + pad],
+            outline='#FF0000',
+            width=2
+        )
+    else:
+        # Corner targeting for vehicles
+        lw = 5
+        cl = min(int((x2 - x1) * 0.25), int((y2 - y1) * 0.25), 30)
+        # Top left
+        draw.line([(x1, y1), (x1 + cl, y1)], fill='#00FF00', width=lw)
+        draw.line([(x1, y1), (x1, y1 + cl)], fill='#00FF00', width=lw)
+        # Top right
+        draw.line([(x2, y1), (x2 - cl, y1)], fill='#00FF00', width=lw)
+        draw.line([(x2, y1), (x2, y1 + cl)], fill='#00FF00', width=lw)
+        # Bottom left
+        draw.line([(x1, y2), (x1 + cl, y2)], fill='#00FF00', width=lw)
+        draw.line([(x1, y2), (x1, y2 - cl)], fill='#00FF00', width=lw)
+        # Bottom right
+        draw.line([(x2, y2), (x2 - cl, y2)], fill='#00FF00', width=lw)
+        draw.line([(x2, y2), (x2, y2 - cl)], fill='#00FF00', width=lw)
+
     buf = io.BytesIO()
     img.save(buf, format='JPEG')
     buf.seek(0)
-    
+
     return send_file(buf, mimetype='image/jpeg')
 
 if __name__ == '__main__':
